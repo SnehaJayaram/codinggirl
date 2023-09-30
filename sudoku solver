@@ -1,0 +1,96 @@
+import random
+
+def print_board(board):
+    horizontal_line = "+---+---+---+---+---+---+"
+    for i, row in enumerate(board):
+        if i % 3 == 0:
+            print(horizontal_line)
+        for j, num in enumerate(row):
+            if j % 3 == 0:
+                print("|", end=" ")
+            if num == 0:
+                print(" ", end=" ")
+            else:
+                print(num, end=" ")
+        print("|")
+    print(horizontal_line)
+
+def is_valid_move(board, row, col, num):
+    # Check if the number is already in the row or column
+    if num in board[row] or num in [board[i][col] for i in range(9)]:
+        return False
+    
+    # Check if the number is in the 3x3 subgrid
+    row_start, col_start = 3 * (row // 3), 3 * (col // 3)
+    for i in range(row_start, row_start + 3):
+        for j in range(col_start, col_start + 3):
+            if board[i][j] == num:
+                return False
+    
+    return True
+
+def solve(board):
+    for row in range(9):
+        for col in range(9):
+            if board[row][col] == 0:
+                for num in range(1, 10):
+                    if is_valid_move(board, row, col, num):
+                        board[row][col] = num
+                        if solve(board):
+                            return True
+                        board[row][col] = 0
+                return False
+    return True
+
+def generate_sudoku(difficulty):
+    # Generate a solved Sudoku board
+    board = [[0 for _ in range(9)] for _ in range(9)]
+    solve(board)
+
+    # Remove some numbers to create a Sudoku puzzle
+    if difficulty == 'easy':
+        num_to_remove = 40
+    elif difficulty == 'medium':
+        num_to_remove = 50
+    else:
+        num_to_remove = 60
+
+    for _ in range(num_to_remove):
+        row, col = random.randint(0, 8), random.randint(0, 8)
+        while board[row][col] == 0:
+            row, col = random.randint(0, 8), random.randint(0, 8)
+        board[row][col] = 0
+
+    return board
+
+def main():
+    print("Welcome to Sudoku!")
+    difficulty = input("Choose a difficulty level (easy/medium/hard): ").lower()
+    if difficulty not in ['easy', 'medium', 'hard']:
+        print("Invalid difficulty level. Please choose easy, medium, or hard.")
+        return
+
+    sudoku_board = generate_sudoku(difficulty)
+    print("\nHere is your Sudoku puzzle:")
+    print_board(sudoku_board)
+
+    solve_choice = input("\nDo you want to solve it yourself? (yes/no): ").lower()
+    if solve_choice == 'yes':
+        print("\nEnter your solution:")
+        user_solution = [[int(input()) for _ in range(9)] for _ in range(9)]
+
+        if user_solution == sudoku_board:
+            print("\nCongratulations! You solved the Sudoku puzzle.")
+        else:
+            print("\nSorry, your solution is incorrect.")
+    elif solve_choice == 'no':
+        if solve(sudoku_board):
+            print("\nSolved Sudoku:")
+            print_board(sudoku_board)
+        else:
+            print("\nNo solution exists for this Sudoku puzzle.")
+    else:
+        print("\nInvalid choice. Please enter 'yes' or 'no'.")
+
+if __name__ == "__main__":
+    main()
